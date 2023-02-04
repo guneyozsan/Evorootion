@@ -437,11 +437,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   landscapeY: 50
   treePositionX: 50
-  worldColor: {r: 1, g: 1, b: 1, a: 1}
-  treeColor: {r: 0, g: 0, b: 0, a: 0}
-  rootColor: {r: 0, g: 0, b: 0, a: 0}
-  rootTipColor: {r: 0, g: 0, b: 0, a: 0}
-  landscapeColor: {r: 0.6226415, g: 0.6226415, b: 0.6226415, a: 1}
+  skyColor: {r: 1, g: 1, b: 1, a: 1}
+  treeColor: {r: 0, g: 0, b: 0, a: 1}
+  rootColor: {r: 1, g: 0, b: 0, a: 1}
+  rootTipColor: {r: 0, g: 0, b: 0, a: 1}
+  earthColor: {r: 0.6226415, g: 0.6226415, b: 0.6226415, a: 1}
   world: {fileID: 8400000, guid: 3ce8d4277d3f34cb3b9aa13afca3766e, type: 2}
 --- !u!114 &1087757706
 MonoBehaviour:
