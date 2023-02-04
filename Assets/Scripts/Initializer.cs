@@ -43,7 +43,7 @@ namespace GuneyOzsan
                     texture.SetPixel(i, j, Color.white);
                 }
             }
-            
+
             // Draw the landscape.
             for (int i = 0; i < world.width; i++)
             {
@@ -52,7 +52,7 @@ namespace GuneyOzsan
                     texture.SetPixel(i, j, landscapeColor);
                 }
             }
-            
+
             // Draw the tree.
             texture.SetPixel(treePositionX, landscapeY - 1, rootColor);
 
@@ -63,28 +63,4 @@ namespace GuneyOzsan
             Destroy(texture);
         }
     }
-    // public class Environment
-    // {
-    //     public Environment()
-    //     {
-    //     }
-    // }
-    // public class Tree
-    // {
-    //     public Tree()
-    //     {
-    //     }
-    // }
-    // public class Root
-    // {
-    //     public Root()
-    //     {
-    //     }
-    // }
-    // public class RootTip
-    // {
-    //     public RootTip()
-    //     {
-    //     }
-    // }
 }
