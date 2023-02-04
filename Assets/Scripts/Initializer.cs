@@ -5,9 +5,21 @@ namespace GuneyOzsan
 {
     public class Initializer : MonoBehaviour
     {
+        [Header("Parameters")]
+        [SerializeField] private int landscapeY;
+        [SerializeField] private int treePositionX;
+        
+        [Header("Palette")]
+        [SerializeField] private Color worldColor;
+        [SerializeField] private Color treeColor;
+        [SerializeField] private Color rootColor;
+        [SerializeField] private Color rootTipColor;
+        [SerializeField] private Color landscapeColor;
+        
+        [Header("References")]
         [SerializeField] private RenderTexture world;
 
-        private void Update()
+        private void Start()
         {
             StartCoroutine(Initialize());
         }
@@ -23,6 +35,7 @@ namespace GuneyOzsan
             if (texture == null)
                 yield break;
 
+            // Reset the texture.
             for (int j = 0; j < world.width; j++)
             {
                 for (int i = 0; i < world.height; i++)
@@ -31,14 +44,18 @@ namespace GuneyOzsan
                 }
             }
             
-            for (int j = Random.Range(0, world.width); j < world.width; j++)
+            // Draw the landscape.
+            for (int i = 0; i < world.width; i++)
             {
-                for (int i = Random.Range(0, world.height); i < world.height; i++)
+                for (int j = 0; j < landscapeY; j++)
                 {
-                    texture.SetPixel(i, j, Color.black);
+                    texture.SetPixel(i, j, landscapeColor);
                 }
             }
             
+            // Draw the tree.
+            texture.SetPixel(treePositionX, landscapeY - 1, rootColor);
+
             #endregion
             
             texture.Apply();
