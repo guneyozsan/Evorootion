@@ -437,13 +437,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 63e2214ddcae4860be061e19e8c469f5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  landscapeY: 70
+  landscapeY: 68
   treePositionX: 50
   rootSplitProbability: 0.035
   rootDecay: 0.002
   waterDiffusionProbability: 0.06
   waterDecay: 0.09
-  controllerBiasMultiplier: 0.68
+  controllerBiasMultiplier: 0.7
   borderColor: {r: 0.8207547, g: 0.8207547, b: 0.8207547, a: 1}
   earthColor: {r: 0.92156863, g: 0.23137255, b: 0.3529412, a: 1}
   rootColor: {r: 0.9529412, g: 1, b: 0.38039216, a: 1}
