@@ -13,8 +13,10 @@ namespace GuneyOzsan
         [SerializeField] private int landscapeY;
         [SerializeField] private int treePositionX;
         [SerializeField] private float rootSplitProbability;
+        [SerializeField] private float rootDecay;
         [SerializeField] private float waterDiffusionProbability;
-        [FormerlySerializedAs("waterDiffuseBuff")] [SerializeField] private float waterPermability;
+        [SerializeField] private float waterDecay;
+        [SerializeField] private float controllerBiasMultiplier;
         
         [Header("Palette")]
         [SerializeField] private Color borderColor;
@@ -93,9 +95,8 @@ namespace GuneyOzsan
             }
 
             // Draw the tree.
-            // texture.SetPixel(treePositionX -1, landscapeY - 1, rootTipColor);
-            texture.SetPixel(treePositionX, landscapeY - 1, rootTipColor);
-            // texture.SetPixel(treePositionX + 1, landscapeY - 1, rootTipColor);
+            texture.SetPixel(treePositionX, landscapeY - 1, rootColor);
+            texture.SetPixel(treePositionX, landscapeY - 2, rootTipColor);
 
             // Draw the water.
             
@@ -168,6 +169,13 @@ namespace GuneyOzsan
 
                 texture = ScreenCapture.CaptureScreenshotAsTexture();
                 
+                Color rootAge = texture.GetPixel(treePositionX, landscapeY - 1);
+                Color.RGBToHSV(rootAge, out float remainingLifeH, out float remainingLifeS, out float remainingLifeV);
+
+                // Update root age.
+                Color nextRootAge = Color.HSVToRGB(remainingLifeH, remainingLifeS, remainingLifeV - rootDecay);
+                setPixelQueue.Add((treePositionX, landscapeY - 1, nextRootAge));
+                
                 for (int x = 0; x < world.width; x++)
                 {
                     for (int y = 0; y < world.height; y++)
@@ -184,12 +192,14 @@ namespace GuneyOzsan
                                 texture.GetPixel(x - 1, y) != earthColor)
                             {
                                 // Root tip is dead.
-                                setPixelQueue.Add((x, y, rootColor));
+                                setPixelQueue.Add((x, y, rootAge));
+                            }
+                            else if (remainingLifeV <= 0)
+                            {
+                                setPixelQueue.Add((x, y, rootAge));
                             }
                             else
                             {
-                                var controllerBiasMultiplier = 0.1f;
-                                
                                 float weightXNegative = 1 + controllerBiasMultiplier * xNegativeBias;
                                 float weightXPositive = 1 + controllerBiasMultiplier * xPositiveBias;
                                 float weightYNegative = 1 + controllerBiasMultiplier * yNegativeBias;
@@ -229,13 +239,13 @@ namespace GuneyOzsan
                             
                                 if (targetColor == borderColor)
                                 {
-                                    setPixelQueue.Add((x, y, rootColor));
+                                    setPixelQueue.Add((x, y, rootAge));
                                 }
                                 else
                                 {
                                     if (targetColor == earthColor)
                                     {
-                                        setPixelQueue.Add((x, y, rootColor));
+                                        setPixelQueue.Add((x, y, rootAge));
                                         setPixelQueue.Add((xNext, yNext, rootTipColor));
                                     }
                                 
@@ -311,7 +321,7 @@ namespace GuneyOzsan
                                 if (diffuseTargets.Count > 0)
                                 {
                                     (int x, int y) target = diffuseTargets[Random.Range(0, diffuseTargets.Count)];
-                                    setPixelQueue.Add((target.x, target.y, Color.HSVToRGB(h, s - waterPermability, v)));
+                                    setPixelQueue.Add((target.x, target.y, Color.HSVToRGB(h, s - waterDecay, v)));
                                 }
                             }
                         }
