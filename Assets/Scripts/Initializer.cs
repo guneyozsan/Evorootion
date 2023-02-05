@@ -29,6 +29,7 @@ namespace GuneyOzsan
         
         [Header("References")]
         [SerializeField] private RenderTexture world;
+        [SerializeField] private AudioSource music;
 
         private void Start()
         {
@@ -119,10 +120,15 @@ namespace GuneyOzsan
             
             #endregion
             
-            var setPixelQueue = new List<(int x, int y, Color color)>(); 
+            var setPixelQueue = new List<(int x, int y, Color color)>();
+            int rootTipCount = int.MaxValue;
             
-            while (true)
+            music.Play();
+            
+            while (rootTipCount != 0)
             {
+                rootTipCount = 0;
+                
                 #region Input Controller
                 
                 int xNegativeBias = 0;
@@ -186,6 +192,8 @@ namespace GuneyOzsan
 
                         if (currentPixel == rootTipColor)
                         {
+                            rootTipCount++;
+                            
                             if (texture.GetPixel(x, y + 1) != earthColor &&
                                 texture.GetPixel(x, y - 1) != earthColor && 
                                 texture.GetPixel(x + 1, y) != earthColor && 
@@ -339,6 +347,8 @@ namespace GuneyOzsan
                 Graphics.Blit(texture, world);
                 Destroy(texture);
             }
+            
+            music.Stop();
         }
     }
 }
