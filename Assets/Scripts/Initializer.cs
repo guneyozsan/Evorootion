@@ -236,7 +236,6 @@ namespace GuneyOzsan
                                     GetNormalizedWaterColor(texture.GetPixel(x - 1, y)) == waterColor)
                                 {
                                     isSuccess = true;
-                                    Debug.Log("Success!");
                                 }
                                 else if (texture.GetPixel(x, y + 1) != earthColor &&
                                          texture.GetPixel(x, y - 1) != earthColor && 
