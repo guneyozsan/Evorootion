@@ -29,7 +29,13 @@ namespace GuneyOzsan
         
         [Header("References")]
         [SerializeField] private RenderTexture world;
-        [SerializeField] private AudioSource music;
+        [SerializeField] private AudioSource idleMusic;
+        [SerializeField] private AudioSource gameplayMusic;
+
+        private void Awake()
+        {
+            idleMusic.Play();
+        }
 
         private void Start()
         {
@@ -123,7 +129,8 @@ namespace GuneyOzsan
             var setPixelQueue = new List<(int x, int y, Color color)>();
             int rootTipCount = int.MaxValue;
             
-            music.Play();
+            idleMusic.Stop();
+            gameplayMusic.Play();
             
             while (rootTipCount != 0)
             {
@@ -348,7 +355,8 @@ namespace GuneyOzsan
                 Destroy(texture);
             }
             
-            music.Stop();
+            gameplayMusic.Stop();
+            idleMusic.Play();
         }
     }
 }
