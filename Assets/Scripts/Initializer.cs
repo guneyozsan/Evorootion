@@ -119,83 +119,94 @@ namespace GuneyOzsan
                     {
                         if (texture.GetPixel(x, y) == rootTipColor)
                         {
-                            int direction = Random.Range(0, 4);
-                            int deltaX;
-                            int deltaY;
-                            
-                            switch (direction)
+                            if (texture.GetPixel(x, y + 1) != earthColor &&
+                                texture.GetPixel(x, y - 1) != earthColor && 
+                                texture.GetPixel(x + 1, y) != earthColor && 
+                                texture.GetPixel(x - 1, y) != earthColor)
                             {
-                                case 0:
-                                    deltaX = 1;
-                                    deltaY = 0;
-                                    break;
-                                case 1:
-                                    deltaX = 0;
-                                    deltaY = 0;
-                                    break;
-                                case 2:
-                                    deltaX = -1;
-                                    deltaY = 0;
-                                    break;
-                                case 3:
-                                    deltaX = 0;
-                                    deltaY = -1;
-                                    break;
-                                default:
-                                    throw new NotSupportedException();
-                            }
-                            
-                            int nextRootTipX = x + deltaX;
-                            int nextRootTipY = y + deltaY;
-                            
-                            Color nextColor = texture.GetPixel(nextRootTipX, nextRootTipY);
-                            
-                            if (nextColor == borderColor)
-                            {
+                                // Root tip is dead.
                                 setPixelQueue.Add((x, y, rootColor));
                             }
                             else
                             {
-                                if (nextColor == earthColor)
+                                int direction = Random.Range(0, 4);
+                                int deltaX;
+                                int deltaY;
+                            
+                                switch (direction)
+                                {
+                                    case 0:
+                                        deltaX = 1;
+                                        deltaY = 0;
+                                        break;
+                                    case 1:
+                                        deltaX = 0;
+                                        deltaY = 0;
+                                        break;
+                                    case 2:
+                                        deltaX = -1;
+                                        deltaY = 0;
+                                        break;
+                                    case 3:
+                                        deltaX = 0;
+                                        deltaY = -1;
+                                        break;
+                                    default:
+                                        throw new NotSupportedException();
+                                }
+                            
+                                int xNext = x + deltaX;
+                                int yNext = y + deltaY;
+                            
+                                Color targetColor = texture.GetPixel(xNext, yNext);
+                            
+                                if (targetColor == borderColor)
                                 {
                                     setPixelQueue.Add((x, y, rootColor));
-                                    setPixelQueue.Add((nextRootTipX, nextRootTipY, rootTipColor));
                                 }
-                                
-                                bool split = Random.Range(0f, 1f) < rootSplitProbability;
-
-                                if (split)
+                                else
                                 {
-                                    var splitTargets = new List<(int x, int y)>();
-                                    if (texture.GetPixel(x + 1, y) == earthColor &&
-                                        nextRootTipX != x + 1 &&
-                                        nextRootTipY != y)
+                                    if (targetColor == earthColor)
                                     {
-                                        splitTargets.Add((x + 1, y));
+                                        setPixelQueue.Add((x, y, rootColor));
+                                        setPixelQueue.Add((xNext, yNext, rootTipColor));
                                     }
-                                    if (texture.GetPixel(x - 1, y) == earthColor &&
-                                        nextRootTipX != x - 1 &&
-                                        nextRootTipY != y)
+                                
+                                    bool split = Random.Range(0f, 1f) < rootSplitProbability;
+
+                                    if (split)
                                     {
-                                        splitTargets.Add((x - 1, y));
-                                    }
-                                    if (texture.GetPixel(x, y + 1) == earthColor &&
-                                        nextRootTipX != x &&
-                                        nextRootTipY != y + 1)
-                                    {
-                                        splitTargets.Add((x, y + 1));
-                                    }
-                                    if (texture.GetPixel(x, y - 1) == earthColor &&
-                                        nextRootTipX != x &&
-                                        nextRootTipY != y - 1)
-                                    {
-                                        splitTargets.Add((x, y - 1));
-                                    }
+                                        var splitTargets = new List<(int x, int y)>();
+                                        if (texture.GetPixel(x + 1, y) == earthColor &&
+                                            xNext != x + 1 &&
+                                            yNext != y)
+                                        {
+                                            splitTargets.Add((x + 1, y));
+                                        }
+                                        if (texture.GetPixel(x - 1, y) == earthColor &&
+                                            xNext != x - 1 &&
+                                            yNext != y)
+                                        {
+                                            splitTargets.Add((x - 1, y));
+                                        }
+                                        if (texture.GetPixel(x, y + 1) == earthColor &&
+                                            xNext != x &&
+                                            yNext != y + 1)
+                                        {
+                                            splitTargets.Add((x, y + 1));
+                                        }
+                                        if (texture.GetPixel(x, y - 1) == earthColor &&
+                                            xNext != x &&
+                                            yNext != y - 1)
+                                        {
+                                            splitTargets.Add((x, y - 1));
+                                        }
                                     
-                                    if (splitTargets.Count > 0)
-                                    {
-                                        (int x, int y) target = splitTargets[Random.Range(0, splitTargets.Count)];
-                                        setPixelQueue.Add((target.x, target.y, rootTipColor));
+                                        if (splitTargets.Count > 0)
+                                        {
+                                            (int x, int y) target = splitTargets[Random.Range(0, splitTargets.Count)];
+                                            setPixelQueue.Add((target.x, target.y, rootTipColor));
+                                        }
                                     }
                                 }
                             }
