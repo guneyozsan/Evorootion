@@ -437,11 +437,17 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   landscapeY: 50
   treePositionX: 50
+  rootSplitProbability: 0.04
+  waterDiffusionProbability: 0.04
+  waterPermability: 0.075
+  waterQuantity: 100
+  borderColor: {r: 0.8207547, g: 0.8207547, b: 0.8207547, a: 1}
+  earthColor: {r: 0.6509804, g: 0.47843137, b: 0.31764707, a: 1}
+  rootColor: {r: 0.29411766, g: 0.16470589, b: 0.1764706, a: 1}
+  rootTipColor: {r: 0.5754717, g: 0.377314, b: 0.3953283, a: 1}
   skyColor: {r: 1, g: 1, b: 1, a: 1}
-  treeColor: {r: 0, g: 0, b: 0, a: 1}
-  rootColor: {r: 1, g: 0, b: 0, a: 1}
-  rootTipColor: {r: 0, g: 0, b: 0, a: 1}
-  earthColor: {r: 0.6226415, g: 0.6226415, b: 0.6226415, a: 1}
+  treeColor: {r: 0.2924528, g: 0.16415983, b: 0.17567141, a: 1}
+  waterColor: {r: 0, g: 0, b: 1, a: 1}
   world: {fileID: 8400000, guid: 3ce8d4277d3f34cb3b9aa13afca3766e, type: 2}
 --- !u!114 &1087757706
 MonoBehaviour:

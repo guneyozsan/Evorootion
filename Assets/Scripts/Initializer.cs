@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Serialization;
 using Random = UnityEngine.Random;
 
 namespace GuneyOzsan
@@ -12,6 +13,8 @@ namespace GuneyOzsan
         [SerializeField] private int landscapeY;
         [SerializeField] private int treePositionX;
         [SerializeField] private float rootSplitProbability;
+        [SerializeField] private float waterDiffusionProbability;
+        [FormerlySerializedAs("waterDiffuseBuff")] [SerializeField] private float waterPermability;
         
         [Header("Palette")]
         [SerializeField] private Color borderColor;
@@ -20,6 +23,7 @@ namespace GuneyOzsan
         [SerializeField] private Color rootTipColor;
         [SerializeField] private Color skyColor;
         [SerializeField] private Color treeColor;
+        [SerializeField] private Color waterColor;
         
         [Header("References")]
         [SerializeField] private RenderTexture world;
@@ -32,6 +36,7 @@ namespace GuneyOzsan
             rootTipColor = GetRoundingSafeColor(rootTipColor);
             skyColor = GetRoundingSafeColor(skyColor);
             treeColor = GetRoundingSafeColor(treeColor);
+            waterColor = GetRoundingSafeColor(waterColor);
 
             StartCoroutine(Initialize());
         }
@@ -88,10 +93,23 @@ namespace GuneyOzsan
             }
 
             // Draw the tree.
-            texture.SetPixel(treePositionX -1, landscapeY - 1, rootTipColor);
+            // texture.SetPixel(treePositionX -1, landscapeY - 1, rootTipColor);
             texture.SetPixel(treePositionX, landscapeY - 1, rootTipColor);
-            texture.SetPixel(treePositionX + 1, landscapeY - 1, rootTipColor);
+            // texture.SetPixel(treePositionX + 1, landscapeY - 1, rootTipColor);
 
+            // Draw the water.
+            
+            int waterX = Random.Range(0, world.width);
+            int waterY = Random.Range(0, landscapeY);
+
+            while (texture.GetPixel(waterX, waterY) != earthColor)
+            {
+                waterX = Random.Range(0, world.width);
+                waterY = Random.Range(0, landscapeY);
+            }
+            
+            texture.SetPixel(waterX, waterY, waterColor);
+            
             // Render the texture.
             texture.Apply();
             Graphics.Blit(texture, world);
@@ -107,17 +125,17 @@ namespace GuneyOzsan
                 setPixelQueue.Clear();
                 yield return new WaitForEndOfFrame();
 
-                #region Root Growth
-
                 texture = ScreenCapture.CaptureScreenshotAsTexture();
-
-                // Update root.
-
+                
                 for (int x = 0; x < world.width; x++)
                 {
                     for (int y = 0; y < world.height; y++)
                     {
-                        if (texture.GetPixel(x, y) == rootTipColor)
+                        Color currentPixel = texture.GetPixel(x, y);
+                        
+                        #region Root Growth
+
+                        if (currentPixel == rootTipColor)
                         {
                             if (texture.GetPixel(x, y + 1) != earthColor &&
                                 texture.GetPixel(x, y - 1) != earthColor && 
@@ -211,11 +229,48 @@ namespace GuneyOzsan
                                 }
                             }
                         }
+                        
+                        #endregion
+                        
+                        #region Water Diffusion
+                        
+                        Color.RGBToHSV(currentPixel, out float h, out float s, out float v);
+                        Color vMaxCurrentPixel = Color.HSVToRGB(h, 1, v);
+                
+                        if (vMaxCurrentPixel == waterColor)
+                        {
+                            float diffuseDice = Random.Range(0f, 1f);
+
+                            float densityWeightedDiffusionProbability = s * waterDiffusionProbability;
+                            if (diffuseDice != 0f && diffuseDice < densityWeightedDiffusionProbability)
+                            {
+                                var diffuseTargets = new List<(int x, int y)>();
+                                
+                                for (int i = 0; i < 3; i++)
+                                {
+                                    for (int j = 0; j < 3; j++)
+                                    {
+                                        if (i == 1 && j == 1)
+                                            continue;
+                                        if (texture.GetPixel(x + i - 1, y + j - 1) == earthColor)
+                                        {
+                                            diffuseTargets.Add((x + i - 1, y + j - 1));
+                                        }
+                                    }
+                                }
+                                
+                                if (diffuseTargets.Count > 0)
+                                {
+                                    (int x, int y) target = diffuseTargets[Random.Range(0, diffuseTargets.Count)];
+                                    setPixelQueue.Add((target.x, target.y, Color.HSVToRGB(h, s - waterPermability, v)));
+                                }
+                            }
+                        }
+
+                        #endregion
                     }
                 }
-
-                #endregion
-
+                
                 foreach ((int x, int y, Color color) parameters in setPixelQueue)
                 {
                     texture.SetPixel(parameters.x, parameters.y, parameters.color);
