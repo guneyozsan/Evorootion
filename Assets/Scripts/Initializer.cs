@@ -1,5 +1,6 @@
 using System.Collections;
 using UnityEngine;
+using UnityEngine.Experimental.Rendering;
 using UnityEngine.Serialization;
 
 namespace GuneyOzsan
@@ -11,18 +12,33 @@ namespace GuneyOzsan
         [SerializeField] private int treePositionX;
         
         [Header("Palette")]
-        [SerializeField] private Color skyColor;
-        [SerializeField] private Color treeColor;
+        [SerializeField] private Color earthColor;
         [SerializeField] private Color rootColor;
         [SerializeField] private Color rootTipColor;
-        [SerializeField] private Color earthColor;
+        [SerializeField] private Color skyColor;
+        [SerializeField] private Color treeColor;
         
         [Header("References")]
         [SerializeField] private RenderTexture world;
 
         private void Start()
         {
+            earthColor = GetRoundingSafeColor(earthColor);
+            rootColor = GetRoundingSafeColor(rootColor);
+            rootTipColor = GetRoundingSafeColor(rootTipColor);
+            skyColor = GetRoundingSafeColor(skyColor);
+            treeColor = GetRoundingSafeColor(treeColor);
+
             StartCoroutine(Initialize());
+        }
+
+        private static Color GetRoundingSafeColor(Color color)
+        {
+            return new Color(
+                (int) (color.r * 255) / 255f,
+                (int) (color.g * 255) / 255f,
+                (int) (color.b * 255) / 255f,
+                (int) (color.a * 255) / 255f);
         }
 
         private IEnumerator Initialize()
@@ -45,7 +61,7 @@ namespace GuneyOzsan
                 }
             }
 
-            // Draw the landscape.
+            // Draw the earth.
             for (int i = 0; i < world.width; i++)
             {
                 for (int j = 0; j < landscapeY; j++)
@@ -74,9 +90,8 @@ namespace GuneyOzsan
                 texture = ScreenCapture.CaptureScreenshotAsTexture();
 
                 // Update root.
-
-                int nextRootX = 0;
-                int nextRootY = 0;
+                int previousRootTipX = 0;
+                int previousRootY = 0;
                 int nextRootTipX = 0;
                 int nextRootTipY = 0;
                 
@@ -86,16 +101,22 @@ namespace GuneyOzsan
                     {
                         if (texture.GetPixel(i, j) == rootTipColor)
                         {
-                            nextRootX = i;
-                            nextRootY = j;
+                            Debug.Log("Root tip found." + i + " " + j);
+                            previousRootTipX = i;
+                            previousRootY = j;
                             nextRootTipX = Mathf.Clamp(i + Random.Range(0, 3) - 1, 0, world.width - 1);
-                            nextRootTipY = Mathf.Clamp(j - Random.Range(0, 2), 0, landscapeY - 1);
+                            nextRootTipY = Mathf.Clamp(j + Random.Range(0, 3) - 1, 0, world.height - 1);
+                            Debug.Log("Root tip will move to." + nextRootTipX + " " + nextRootTipY);
                         }
                     }
                 }
                 
-                texture.SetPixel(nextRootX, nextRootY, rootColor);
-                texture.SetPixel(nextRootTipX, nextRootTipY, rootTipColor);
+                if (texture.GetPixel(nextRootTipX, nextRootTipY) == earthColor)
+                {
+                    Debug.Log("Root tip hit the earth.");
+                    texture.SetPixel(previousRootTipX, previousRootY, rootColor);
+                    texture.SetPixel(nextRootTipX, nextRootTipY, rootTipColor);
+                }
                 
                 #endregion
                 
