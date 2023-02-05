@@ -25,6 +25,7 @@ namespace GuneyOzsan
         [SerializeField] private Color rootTipColor;
         [SerializeField] private Color skyColor;
         [SerializeField] private Color treeColor;
+        [SerializeField] private Color treeTipColor;
         [SerializeField] private Color waterColor;
         
         [Header("References")]
@@ -45,6 +46,7 @@ namespace GuneyOzsan
             rootTipColor = GetRoundingSafeColor(rootTipColor);
             skyColor = GetRoundingSafeColor(skyColor);
             treeColor = GetRoundingSafeColor(treeColor);
+            treeTipColor = GetRoundingSafeColor(treeTipColor);
             waterColor = GetRoundingSafeColor(waterColor);
 
             StartCoroutine(Initialize());
@@ -61,25 +63,34 @@ namespace GuneyOzsan
 
         private IEnumerator Initialize()
         {
+            yield return new WaitForEndOfFrame();
+            Texture2D texture = ScreenCapture.CaptureScreenshotAsTexture();
+            if (texture == null)
+                yield break;
+
+            // Draw the sky.
+            for (int i = 0; i < world.width; i++)
+            {
+                for (int j = landscapeY; j < world.height; j++)
+                {
+                    texture.SetPixel(i, j, skyColor);
+                    texture.Apply();
+                    Graphics.Blit(texture, world);
+                }
+            }
+            
             while (true)
             {
+                bool isSuccess = false;
+                
                 yield return new WaitForEndOfFrame();
 
                 #region Initialize
 
-                Texture2D texture = ScreenCapture.CaptureScreenshotAsTexture();
+                texture = ScreenCapture.CaptureScreenshotAsTexture();
 
                 if (texture == null)
                     yield break;
-
-                // Draw the sky.
-                for (int i = 0; i < world.width; i++)
-                {
-                    for (int j = landscapeY; j < world.height; j++)
-                    {
-                        texture.SetPixel(i, j, skyColor);
-                    }
-                }
 
                 // Draw the earth.
                 for (int i = 0; i < world.width; i++)
@@ -104,6 +115,8 @@ namespace GuneyOzsan
                 }
 
                 // Draw the tree.
+                texture.SetPixel(treePositionX, landscapeY, treeColor);
+                texture.SetPixel(treePositionX, landscapeY + 1, treeTipColor);
                 texture.SetPixel(treePositionX, landscapeY - 1, rootColor);
                 texture.SetPixel(treePositionX, landscapeY - 2, rootTipColor);
 
@@ -134,7 +147,7 @@ namespace GuneyOzsan
                 idleMusic.Stop();
                 gameplayMusic.Play();
             
-                while (rootTipCount != 0)
+                while (!isSuccess && rootTipCount != 0)
                 {
                     rootTipCount = 0;
                 
@@ -145,33 +158,33 @@ namespace GuneyOzsan
                     int yNegativeBias = 0;
                     int yPositiveBias = 0;
 
-                    if (Input.GetKeyDown(KeyCode.LeftArrow))
+                    if (Input.GetKey(KeyCode.LeftArrow))
                     {
                         xNegativeBias = 1;
                         xPositiveBias = 0;
                     }
-                    if (Input.GetKeyDown(KeyCode.RightArrow))
+                    if (Input.GetKey(KeyCode.RightArrow))
                     {
                         xNegativeBias = 0;
                         xPositiveBias = 1;
                     }
-                    if (Input.GetKeyDown(KeyCode.LeftArrow) && Input.GetKeyDown(KeyCode.RightArrow))
+                    if (Input.GetKey(KeyCode.LeftArrow) && Input.GetKey(KeyCode.RightArrow))
                     {
                         xNegativeBias = 0;
                         xPositiveBias = 0;
                     }
                 
-                    if (Input.GetKeyDown(KeyCode.DownArrow))
+                    if (Input.GetKey(KeyCode.DownArrow))
                     {
                         yNegativeBias = 1;
                         yPositiveBias = 0;
                     }
-                    if (Input.GetKeyDown(KeyCode.UpArrow))
+                    if (Input.GetKey(KeyCode.UpArrow))
                     {
                         yNegativeBias = 0;
                         yPositiveBias = 1;
                     }
-                    if (Input.GetKeyDown(KeyCode.DownArrow) && Input.GetKeyDown(KeyCode.UpArrow))
+                    if (Input.GetKey(KeyCode.DownArrow) && Input.GetKey(KeyCode.UpArrow))
                     {
                         yNegativeBias = 0;
                         yPositiveBias = 0;
@@ -202,11 +215,25 @@ namespace GuneyOzsan
                             if (currentPixel == rootTipColor)
                             {
                                 rootTipCount++;
-                            
-                                if (texture.GetPixel(x, y + 1) != earthColor &&
-                                    texture.GetPixel(x, y - 1) != earthColor && 
-                                    texture.GetPixel(x + 1, y) != earthColor && 
-                                    texture.GetPixel(x - 1, y) != earthColor)
+                                
+                                Color GetNormalizedWaterColor(Color color)
+                                {
+                                    Color.RGBToHSV(color, out float h, out float s, out float v);
+                                    return Color.HSVToRGB(h, 1, v);
+                                }
+
+                                if (GetNormalizedWaterColor(texture.GetPixel(x, y + 1)) == waterColor ||
+                                    GetNormalizedWaterColor(texture.GetPixel(x, y - 1)) == waterColor ||
+                                    GetNormalizedWaterColor(texture.GetPixel(x + 1, y)) == waterColor ||
+                                    GetNormalizedWaterColor(texture.GetPixel(x - 1, y)) == waterColor)
+                                {
+                                    isSuccess = true;
+                                    Debug.Log("Success!");
+                                }
+                                else if (texture.GetPixel(x, y + 1) != earthColor &&
+                                         texture.GetPixel(x, y - 1) != earthColor && 
+                                         texture.GetPixel(x + 1, y) != earthColor && 
+                                         texture.GetPixel(x - 1, y) != earthColor)
                                 {
                                     // Root tip is dead.
                                     setPixelQueue.Add((x, y, rootAge));
@@ -354,15 +381,70 @@ namespace GuneyOzsan
                 
                     texture.Apply();
                     Graphics.Blit(texture, world);
-                    Destroy(texture);
                 }
-            
+                
+                setPixelQueue.Clear();
+                
+                yield return null;
+
+                if (isSuccess)
+                {
+                    Debug.Log("TREEEE");
+                    for (int x = 0; x < world.width; x++)
+                    {
+                        for (int y = 0; y < world.height; y++)
+                        {
+                            Color currentPixel = texture.GetPixel(x, y);
+
+                            if (currentPixel == treeTipColor)
+                            {
+                                int weightUp = 4;
+                                int weightSide = 1;
+                                int direction = Random.Range(0, weightUp + 2 * weightSide);
+
+                                int dX = 0;
+                                int dY = 0;
+                                
+                                if (direction == 0)
+                                {
+                                    dX = -1;
+                                }
+                                else if (direction == 1)
+                                {
+                                    dX = 1;
+                                }
+                                else
+                                {
+                                    dY = 1;
+                                }
+                                
+                                setPixelQueue.Add((x + dX, y + dY, treeTipColor));
+                                setPixelQueue.Add((x, y, treeColor));
+                            }
+                        }
+                    }
+                    
+                    foreach ((int x, int y, Color color) parameters in setPixelQueue)
+                    {
+                        texture.SetPixel(parameters.x, parameters.y, parameters.color);
+                    }
+                
+                    texture.Apply();
+                    Graphics.Blit(texture, world);
+                }
+                
+                Destroy(texture);
+                
                 gameplayMusic.Stop();
                 idleMusic.Play();
 
-                while (!Input.GetKeyDown(KeyCode.Space))
+                while (!Input.GetKey(KeyCode.Space))
                 {
                     yield return null;
+                    if (!isSuccess)
+                    {
+                        idleMusic.Play();
+                    }
                 }
             }
         }
