@@ -81,6 +81,9 @@ namespace GuneyOzsan
             
             // Draw the sun.
             texture.SetPixel(1, 90, sunColor);
+            texture.SetPixel(1, 91, sunColor);
+            texture.SetPixel(2, 90, sunColor);
+            texture.SetPixel(2, 91, sunColor);
             texture.Apply();
             Graphics.Blit(texture, world);
             
@@ -426,8 +429,15 @@ namespace GuneyOzsan
 
                         if (currentPixel == sunColor)
                         {
-                            setPixelQueue.Add((x, y, skyColor));
-                            setPixelQueue.Add((x + 1, y, sunColor));
+                            if (texture.GetPixel(x + 1, y) == skyColor)
+                            {
+                                setPixelQueue.Add((x + 1, y, sunColor));
+                            }
+
+                            if (texture.GetPixel(x - 1, y) != sunColor)
+                            {
+                                setPixelQueue.Add((x, y, skyColor));
+                            }
                         }
                     }
                 }
