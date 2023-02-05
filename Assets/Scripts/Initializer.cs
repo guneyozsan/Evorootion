@@ -1,7 +1,10 @@
+using System;
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Serialization;
+using Random = UnityEngine.Random;
 
 namespace GuneyOzsan
 {
@@ -12,6 +15,7 @@ namespace GuneyOzsan
         [SerializeField] private int treePositionX;
         
         [Header("Palette")]
+        [SerializeField] private Color borderColor;
         [SerializeField] private Color earthColor;
         [SerializeField] private Color rootColor;
         [SerializeField] private Color rootTipColor;
@@ -23,6 +27,7 @@ namespace GuneyOzsan
 
         private void Start()
         {
+            borderColor = GetRoundingSafeColor(borderColor);
             earthColor = GetRoundingSafeColor(earthColor);
             rootColor = GetRoundingSafeColor(rootColor);
             rootTipColor = GetRoundingSafeColor(rootTipColor);
@@ -69,9 +74,24 @@ namespace GuneyOzsan
                     texture.SetPixel(i, j, earthColor);
                 }
             }
+            
+            // Draw the borders.
+            for (int i = 0; i < world.width; i++)
+            {
+                texture.SetPixel(i, 0, borderColor);
+                texture.SetPixel(i, world.height - 1, borderColor);
+            }
+            
+            for (int i = 0; i < world.height; i++)
+            {
+                texture.SetPixel(0, i, borderColor);
+                texture.SetPixel(world.width - 1, i, borderColor);
+            }
 
             // Draw the tree.
+            texture.SetPixel(treePositionX -1, landscapeY - 1, rootTipColor);
             texture.SetPixel(treePositionX, landscapeY - 1, rootTipColor);
+            texture.SetPixel(treePositionX + 1, landscapeY - 1, rootTipColor);
 
             // Render the texture.
             texture.Apply();
@@ -81,51 +101,79 @@ namespace GuneyOzsan
             
             #endregion
             
+            var setPixelQueue = new List<(int x, int y, Color color)>(); 
+            
             while (true)
             {
+                setPixelQueue.Clear();
                 yield return new WaitForEndOfFrame();
 
-                #region Update
+                #region Root Growth
 
                 texture = ScreenCapture.CaptureScreenshotAsTexture();
 
                 // Update root.
-                int previousRootTipX = 0;
-                int previousRootY = 0;
-                int nextRootTipX = 0;
-                int nextRootTipY = 0;
-                
-                for (int i = 0; i < world.width; i++)
+
+                for (int x = 0; x < world.width; x++)
                 {
-                    for (int j = 0; j < world.height; j++)
+                    for (int y = 0; y < world.height; y++)
                     {
-                        if (texture.GetPixel(i, j) == rootTipColor)
+                        if (texture.GetPixel(x, y) == rootTipColor)
                         {
-                            Debug.Log("Root tip found." + i + " " + j);
-                            previousRootTipX = i;
-                            previousRootY = j;
-                            nextRootTipX = Mathf.Clamp(i + Random.Range(0, 3) - 1, 0, world.width - 1);
-                            nextRootTipY = Mathf.Clamp(j + Random.Range(0, 3) - 1, 0, world.height - 1);
-                            Debug.Log("Root tip will move to." + nextRootTipX + " " + nextRootTipY);
+                            int direction = Random.Range(0, 4);
+                            int deltaX;
+                            int deltaY;
+                            
+                            switch (direction)
+                            {
+                                case 0:
+                                    deltaX = 1;
+                                    deltaY = 0;
+                                    break;
+                                case 1:
+                                    deltaX = 0;
+                                    deltaY = 0;
+                                    break;
+                                case 2:
+                                    deltaX = -1;
+                                    deltaY = 0;
+                                    break;
+                                case 3:
+                                    deltaX = 0;
+                                    deltaY = -1;
+                                    break;
+                                default:
+                                    throw new NotSupportedException();
+                            }
+                            
+                            int nextRootTipX = x + deltaX;
+                            int nextRootTipY = y + deltaY;
+                            
+                            Color nextColor = texture.GetPixel(nextRootTipX, nextRootTipY);
+                            
+                            if (nextColor == earthColor)
+                            {
+                                setPixelQueue.Add((x, y, rootColor));
+                                setPixelQueue.Add((nextRootTipX, nextRootTipY, rootTipColor));
+                            }
+                            else if (nextColor == borderColor)
+                            {
+                                setPixelQueue.Add((x, y, rootColor));
+                            }
                         }
                     }
                 }
-                
-                if (texture.GetPixel(nextRootTipX, nextRootTipY) == earthColor)
-                {
-                    Debug.Log("Root tip hit the earth.");
-                    texture.SetPixel(previousRootTipX, previousRootY, rootColor);
-                    texture.SetPixel(nextRootTipX, nextRootTipY, rootTipColor);
-                }
-                
+
                 #endregion
+
+                foreach ((int x, int y, Color color) parameters in setPixelQueue)
+                {
+                    texture.SetPixel(parameters.x, parameters.y, parameters.color);
+                }
                 
                 texture.Apply();
                 Graphics.Blit(texture, world);
                 Destroy(texture);
-                
-                if (nextRootTipY == 0)
-                    break;
             }
         }
     }
