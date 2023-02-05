@@ -445,13 +445,13 @@ MonoBehaviour:
   waterDecay: 0.09
   controllerBiasMultiplier: 0.68
   borderColor: {r: 0.8207547, g: 0.8207547, b: 0.8207547, a: 1}
-  earthColor: {r: 0.2924528, g: 0.21461688, b: 0.14208794, a: 1}
-  rootColor: {r: 1, g: 0.86289966, b: 0.6650944, a: 1}
+  earthColor: {r: 0.92156863, g: 0.23137255, b: 0.3529412, a: 1}
+  rootColor: {r: 0.9529412, g: 1, b: 0.38039216, a: 1}
   rootTipColor: {r: 0.8584906, g: 0.8304013, b: 0.7410556, a: 1}
-  skyColor: {r: 1, g: 1, b: 1, a: 1}
-  sunColor: {r: 1, g: 1, b: 0, a: 1}
-  treeColor: {r: 0, g: 1, b: 0, a: 1}
-  treeTipColor: {r: 0.514151, g: 1, b: 0.514151, a: 1}
+  skyColor: {r: 0.59607846, g: 0.9882353, b: 0.29803923, a: 1}
+  sunColor: {r: 1, g: 1, b: 1, a: 1}
+  treeColor: {r: 0.92156863, g: 0.23137255, b: 0.3529412, a: 1}
+  treeTipColor: {r: 0.92156863, g: 0.5879608, b: 0.64672124, a: 1}
   waterColor: {r: 0, g: 0, b: 1, a: 1}
   world: {fileID: 8400000, guid: 3ce8d4277d3f34cb3b9aa13afca3766e, type: 2}
   idleMusic: {fileID: 1087757708}
