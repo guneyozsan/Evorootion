@@ -24,6 +24,7 @@ namespace GuneyOzsan
         [SerializeField] private Color rootColor;
         [SerializeField] private Color rootTipColor;
         [SerializeField] private Color skyColor;
+        [SerializeField] private Color sunColor;
         [SerializeField] private Color treeColor;
         [SerializeField] private Color treeTipColor;
         [SerializeField] private Color waterColor;
@@ -44,6 +45,7 @@ namespace GuneyOzsan
             earthColor = GetRoundingSafeColor(earthColor);
             rootColor = GetRoundingSafeColor(rootColor);
             rootTipColor = GetRoundingSafeColor(rootTipColor);
+            sunColor = GetRoundingSafeColor(sunColor);
             skyColor = GetRoundingSafeColor(skyColor);
             treeColor = GetRoundingSafeColor(treeColor);
             treeTipColor = GetRoundingSafeColor(treeTipColor);
@@ -74,10 +76,13 @@ namespace GuneyOzsan
                 for (int j = landscapeY; j < world.height; j++)
                 {
                     texture.SetPixel(i, j, skyColor);
-                    texture.Apply();
-                    Graphics.Blit(texture, world);
                 }
             }
+            
+            // Draw the sun.
+            texture.SetPixel(1, 90, sunColor);
+            texture.Apply();
+            Graphics.Blit(texture, world);
             
             while (true)
             {
@@ -387,51 +392,53 @@ namespace GuneyOzsan
                 
                 yield return null;
 
-                if (isSuccess)
+                for (int x = 0; x < world.width; x++)
                 {
-                    Debug.Log("TREEEE");
-                    for (int x = 0; x < world.width; x++)
+                    for (int y = 0; y < world.height; y++)
                     {
-                        for (int y = 0; y < world.height; y++)
+                        Color currentPixel = texture.GetPixel(x, y);
+
+                        if (isSuccess && currentPixel == treeTipColor)
                         {
-                            Color currentPixel = texture.GetPixel(x, y);
+                            int weightUp = 4;
+                            int weightSide = 1;
+                            int direction = Random.Range(0, weightUp + 2 * weightSide);
 
-                            if (currentPixel == treeTipColor)
+                            int dX = 0;
+                            int dY = 0;
+                            
+                            if (direction == 0)
                             {
-                                int weightUp = 4;
-                                int weightSide = 1;
-                                int direction = Random.Range(0, weightUp + 2 * weightSide);
-
-                                int dX = 0;
-                                int dY = 0;
-                                
-                                if (direction == 0)
-                                {
-                                    dX = -1;
-                                }
-                                else if (direction == 1)
-                                {
-                                    dX = 1;
-                                }
-                                else
-                                {
-                                    dY = 1;
-                                }
-                                
-                                setPixelQueue.Add((x + dX, y + dY, treeTipColor));
-                                setPixelQueue.Add((x, y, treeColor));
+                                dX = -1;
                             }
+                            else if (direction == 1)
+                            {
+                                dX = 1;
+                            }
+                            else
+                            {
+                                dY = 1;
+                            }
+                            
+                            setPixelQueue.Add((x + dX, y + dY, treeTipColor));
+                            setPixelQueue.Add((x, y, treeColor));
+                        }
+
+                        if (currentPixel == sunColor)
+                        {
+                            setPixelQueue.Add((x, y, skyColor));
+                            setPixelQueue.Add((x + 1, y, sunColor));
                         }
                     }
-                    
-                    foreach ((int x, int y, Color color) parameters in setPixelQueue)
-                    {
-                        texture.SetPixel(parameters.x, parameters.y, parameters.color);
-                    }
-                
-                    texture.Apply();
-                    Graphics.Blit(texture, world);
                 }
+                
+                foreach ((int x, int y, Color color) parameters in setPixelQueue)
+                {
+                    texture.SetPixel(parameters.x, parameters.y, parameters.color);
+                }
+            
+                texture.Apply();
+                Graphics.Blit(texture, world);
                 
                 Destroy(texture);
                 

@@ -449,6 +449,7 @@ MonoBehaviour:
   rootColor: {r: 1, g: 0.86289966, b: 0.6650944, a: 1}
   rootTipColor: {r: 0.8584906, g: 0.8304013, b: 0.7410556, a: 1}
   skyColor: {r: 1, g: 1, b: 1, a: 1}
+  sunColor: {r: 1, g: 1, b: 0, a: 1}
   treeColor: {r: 0, g: 1, b: 0, a: 1}
   treeTipColor: {r: 0.514151, g: 1, b: 0.514151, a: 1}
   waterColor: {r: 0, g: 0, b: 1, a: 1}
