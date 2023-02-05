@@ -122,6 +122,47 @@ namespace GuneyOzsan
             
             while (true)
             {
+                #region Input Controller
+                
+                int xNegativeBias = 0;
+                int xPositiveBias = 0;
+                int yNegativeBias = 0;
+                int yPositiveBias = 0;
+
+                if (Input.GetKeyDown(KeyCode.LeftArrow))
+                {
+                    xNegativeBias = 1;
+                    xPositiveBias = 0;
+                }
+                if (Input.GetKeyDown(KeyCode.RightArrow))
+                {
+                    xNegativeBias = 0;
+                    xPositiveBias = 1;
+                }
+                if (Input.GetKeyDown(KeyCode.LeftArrow) && Input.GetKeyDown(KeyCode.RightArrow))
+                {
+                    xNegativeBias = 0;
+                    xPositiveBias = 0;
+                }
+                
+                if (Input.GetKeyDown(KeyCode.DownArrow))
+                {
+                    yNegativeBias = 1;
+                    yPositiveBias = 0;
+                }
+                if (Input.GetKeyDown(KeyCode.UpArrow))
+                {
+                    yNegativeBias = 0;
+                    yPositiveBias = 1;
+                }
+                if (Input.GetKeyDown(KeyCode.DownArrow) && Input.GetKeyDown(KeyCode.UpArrow))
+                {
+                    yNegativeBias = 0;
+                    yPositiveBias = 0;
+                }
+
+                #endregion
+
                 setPixelQueue.Clear();
                 yield return new WaitForEndOfFrame();
 
@@ -147,30 +188,38 @@ namespace GuneyOzsan
                             }
                             else
                             {
-                                int direction = Random.Range(0, 4);
+                                var controllerBiasMultiplier = 0.1f;
+                                
+                                float weightXNegative = 1 + controllerBiasMultiplier * xNegativeBias;
+                                float weightXPositive = 1 + controllerBiasMultiplier * xPositiveBias;
+                                float weightYNegative = 1 + controllerBiasMultiplier * yNegativeBias;
+                                float weightYPositive = 1 + controllerBiasMultiplier * yPositiveBias;
+                                float weightSum = weightXNegative + weightXPositive + weightYNegative + weightYPositive;
+                                    
+                                float directionDice = Random.Range(0, weightSum);
+                                
                                 int deltaX;
                                 int deltaY;
-                            
-                                switch (direction)
+                                
+                                if (directionDice < weightXNegative)
                                 {
-                                    case 0:
-                                        deltaX = 1;
-                                        deltaY = 0;
-                                        break;
-                                    case 1:
-                                        deltaX = 0;
-                                        deltaY = 0;
-                                        break;
-                                    case 2:
-                                        deltaX = -1;
-                                        deltaY = 0;
-                                        break;
-                                    case 3:
-                                        deltaX = 0;
-                                        deltaY = -1;
-                                        break;
-                                    default:
-                                        throw new NotSupportedException();
+                                    deltaX = -1;
+                                    deltaY = 0;
+                                }
+                                else if (directionDice < weightXNegative + weightXPositive)
+                                {
+                                    deltaX = 1;
+                                    deltaY = 0;
+                                }
+                                else if (directionDice < weightXNegative + weightXPositive + weightYNegative)
+                                {
+                                    deltaX = 0;
+                                    deltaY = -1;
+                                }
+                                else
+                                {
+                                    deltaX = 0;
+                                    deltaY = 1;
                                 }
                             
                                 int xNext = x + deltaX;
